@@ -8,7 +8,7 @@ Enseñar al participante a identificar y explotar ejecutables para Windows vulne
 
 # Identificando una DLL vulnerable
 Antes de saber como identificar una DLL que sea vulnerable a side loading debes entender ¿qué es una DLL?
-## Qué es una DLL?
+## ¿Qué es una DLL?
 Como su nombre nos indica Dynamic Link Library (DLL) son archivos conocimos como bibliotecas de enlaces dinámicos. Estas bibliotecas ofrecen mediante sus "exports" funciónes específicas a las aplicaciónes que asi lo requieren.
 Para que estas funciónes puedan ser utulizadas por aplicaciónes exiten 2 maneras de hacerlo
 * At link time - Cuando un progrma se compila un __import table__ se escribe dentro de los headers del ejecutable (PE), esto quiere decir que cuando un progrma requiere una función que una librería exporta, se tiene que hacer referencia en esta tabla para saber que se usará como un "import"
