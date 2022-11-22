@@ -7,17 +7,17 @@ Esta repo estda hecha para el taller de BugCon 2022 titulado Training DLL Side-L
 Enseñar al participante a identificar y explotar ejecutables para Windows vulnerables a DLL Side-Loading
 
 # Identificando una DLL vulnerable
-Antes de saber como identificar una DLL que sea vulnerable a side loading debes entender qué es un DLL?
+Antes de saber como identificar una DLL que sea vulnerable a side loading debes entender ¿qué es una DLL?
 ## Qué es una DLL?
-Como su nombre nos indica Dynamic Link Library (DLL) son archivos conocimos como bibliotecas de enlaces dinamicos. Estas bibliotecas ofrecen mediante sus "exports" funciones especificas a las aplicaciones que asi lo requieren.
-Para que estas funciones puedan ser utulizadas por aplicaciones exiten 2 maneras de hacerlo
-* At link time - Cuando un progrma se compila un __import table__ se escribe dentro de los headers del ejecutable (PE), esto quiere decir que cuando un progrma requiere una funcion que una libreria exporta, se tiene que hacer referencia en esta tabla para saber que se usara como un "import"
-* At run time - Si una libreria se necesita en timepo de ejecucion y esta no se encuentra en el __import table__ es posible cargar una libreria en el espacio de memoria del proceso con las Windows APIs __LoadLibrary(),LoadLibraryEx()__ y para resolver la direccion de una funcion especifica de la libreria cargada se usa __GetProcAddress__
+Como su nombre nos indica Dynamic Link Library (DLL) son archivos conocimos como bibliotecas de enlaces dinámicos. Estas bibliotecas ofrecen mediante sus "exports" funciónes específicas a las aplicaciónes que asi lo requieren.
+Para que estas funciónes puedan ser utulizadas por aplicaciónes exiten 2 maneras de hacerlo
+* At link time - Cuando un progrma se compila un __import table__ se escribe dentro de los headers del ejecutable (PE), esto quiere decir que cuando un progrma requiere una función que una librería exporta, se tiene que hacer referencia en esta tabla para saber que se usará como un "import"
+* At run time - Si una librería se necesita en timepo de ejecución y esta no se encuentra en el __import table__ es posible cargar una librería en el espacio de memoria del proceso con las Windows APIs __LoadLibrary(),LoadLibraryEx()__ y para resolver la dirección de una función específica de la librería cargada se usa __GetProcAddress__
 ## LoadLibrary Windows API
 Esta API de Windows es muy popular para cargar en la memoria de un proceso una DLL, esta API recibe el nombre de la DLL que se quiere cargar en la memoria del proceso.
-Una vez que la funcion encuentra la libreria que se quiere cargar, la DLL es mapeada en la memoria del proceso que invoca esta funcion y retorna un handle, este handle es importante para usar funciones como __GetProcAddress__
+Una vez que la función encuentra la librería que se quiere cargar, la DLL es mapeada en la memoria del proceso que invoca esta función y retorna un handle, este handle es importante para usar funciónes como __GetProcAddress__
 
-Si a la __LoadLibrary__ se le pasa el path completo de la DLL que se quiere cargar, esta funcion buscara solamente en ese path, caso contrario se usara un orden de busqueda predefinido.
+Si a la __LoadLibrary__ se le pasa el path completo de la DLL que se quiere cargar, esta función buscara solamente en ese path, caso contrario se usará un orden de búsqueda predefinido.
 ### Function prototype
 ```c++
 HMODULE LoadLibrary(
@@ -47,46 +47,46 @@ int main( void )
 }
 ```
 ## Orden de búsqueda de las DLL
-Si __LoadLibrary__ solo recibe el nombre de la DLL se usara el siguiente orden de busqueda para encontrar la DLL y cargarla en memoria.
+Si __LoadLibrary__ solo recibe el nombre de la DLL se usará el siguiente orden de búsqueda para encontrar la DLL y cargarla en memoria.
 
 ![Alt text](/images/search_order.jpg)
 
 ## Usando ProcMon para encontrar una DLL vulnerable
-Para ver en accion como es que este orden de busqueda funciona usaremos procmon con el binario __vuln_side_loading.exe__ que viene con la DLL __my_custom.dll__ dentro del zip [app_exaple.7z](ejemplo/app_example.7z) __NOTA: el pass del archivo comprimido es BugCon2022__
-Puedes consultar el codigo de cada archivo se encuentra en [vuln_side_loading.exe](code/vuln_side_loading.cpp) y [my_custom.dll](code/my_custoom_dll.cpp)
+Para ver en acción cómo es que este orden de búsqueda funciona usaremos procmon con el binario __vuln_side_loading.exe__ que viene con la DLL __my_custom.dll__ dentro del zip [app_exaple.7z](ejemplo/app_example.7z) __NOTA: el pass del archivo comprimido es BugCon2022__
+Puedes consultar el código de cada archivo se encuentra en [vuln_side_loading.exe](code/vuln_side_loading.cpp) y [my_custom.dll](code/my_custoom_dll.cpp)
 
 ### ProcMon
 Process Monitor aka procmon es una herramienta de Windows que nos muestra en tiempo real el sistema de archivos, llaves de registro y process/thread activity.
 
-En caso que no tengas procmon instalado, lo puedes descargar de aqui [Process Monitor v3.92](https://learn.microsoft.com/en-us/sysinternals/downloads/procmon)
+En caso que no tengas procmon instalado, lo puedes descargar de aquí [Process Monitor v3.92](https://learn.microsoft.com/en-us/sysinternals/downloads/procmon)
 
-Antes de ver el orden de busqueda observaremos como luce este pedazo de codigo desde procmon
+Antes de ver el orden de búsqueda observaremos como luce este pedazo de código desde procmon
 
 ```cpp
 hinstLib = LoadLibrary(L"my_custom.dll");
 ```
 
-Como se observa en la imagen tenemos que la __my_custom.dll__ es cargada desde el path de donde se ejecuta la aplicacion.
+Como se observa en la imagen tenemos que la __my_custom.dll__ es cargada desde el path de donde se ejecuta la aplicación.
 
 ![Alt text](/images/procmon_1.jpg)
 
 
-Ahora veremos lo que pasa si la DLL no se encuentra en el path desde donde se ejecuta la aplicacion
+Ahora veremos lo que pasa si la DLL no se encuentra en el path desde donde se ejecuta la aplicación
 
 ![Alt text](/images/procmon_2.jpg)
 
-Como podemos observar el patron de busqueda antes descrito se ejecuta correctamente
+Como podemos observar el patron de búsqueda antes descrito se ejecuta correctamente.
 
 # Explotación
 ## Arquitectura básica de la DLL
-La parte mas importante de la DLL se le conoce como Entry-Point.
-Si este Entry-Poit no es declarado correctamente, la DLL no sera cargada correctamente
+La parte más importante de la DLL se le conoce como Entry-Point.
+Si este Entry-Poit no es declarado correctamente, la DLL no será cargada correctamente
 La DLL cuenta con distintos escenarios donde la DLL va a ser llamada, estos son:
 * DLL_PROCESS_ATTACH - El proceso carga la DLL
 * DLL_THREAD_ATTACH - El proceso crea un nuevo thread
 * DLL_THREAD_DETACH - El thread termina
 * DLL_PROCESS_DETACH - El proceso cierra el handle de la DLL
-A continuacion vemos un ejemplo de un DLL Entry-Point
+A continuación vemos un ejemplo de un DLL Entry-Point
 ```cpp
 BOOL WINAPI DllMain(
     HINSTANCE hinstDLL,  // handle to DLL module
@@ -117,9 +117,9 @@ BOOL WINAPI DllMain(
 }
 ```
 ## Analizando los exports de la DLL
-A demas del DLL Entry-Point una DLL tiene funciones que expone para su uso por atras aplicaciones, estas funciones son mejor conocidas como "exports".
+Además del DLL Entry-Point una DLL tiene funciones que expone para su uso por atras aplicaciones, estas funciones son mejor conocidas como "exports".
 
-Muchas veces cuando una DLL es cargada en memoria, en seguida se usa la funcion __GetProcAddress__ para obtener la direccion de alguna funcion, si esta direccion no es encontrada quizas el programa no funcione correctamente y termine su ejecucion, lo que hara que nuestra DLL sea removida de la memoria del programa evitando continuar con el ataque.
+Muchas veces cuando una DLL es cargada en memoria, en seguida se usa la función __GetProcAddress__ para obtener la dirección de alguna función, si esta dirección no es encontrada quizas el programa no funcióne correctamente y termine su ejecución, lo que hará que nuestra DLL sea removida de la memoria del programa evitando continuar con el ataque.
 
 Para inspeccionar los "exports" que tiene una la DLL __C:\Windows\System32\uxtheme.dll__ usaremos [CFF explorer](https://ntcore.com/?page_id=388).
 
@@ -130,9 +130,9 @@ Esa lista de "exports" son los que tenemos que satisfacer para que nuestra DLL a
 ## Programando la DLL
 Una vez tenemos los "exports que vamos a necesitar, comenzaremos un nuevo proyecto en visual estudio para compilar nuestra DLL.
 ## Programando el comportamiento malicioso
-Se agrega el comportamiento maliciose que se desea, generalmete se hace en __DLL_PROCESS_ATTACH__
+Se agrega el comportamiento malicioso que se desea, generalmete se hace en __DLL_PROCESS_ATTACH__
 # Caso de uso Filezilla DLL side-loading
-Para este caso usaremos la ultima version del popular software de FTP [FilZilla](https://filezilla-project.org/download.php?type=client)
+Para este caso usaremos la última versión del popular software de FTP [FilZilla](https://filezilla-project.org/download.php?type=client)
 
 ## Buscando la DLL
 Primero buscaremos alguna DLL de las que carga el proceso __filezilla.exe__, para este fin usaremos procmon.
@@ -203,7 +203,7 @@ extern "C" __declspec(dllexport)
 9.  Compilamos y probamos
 
 ## DLL side-loading to reverse shell
-Aqui agregamos el codigo necesario para una [reverse shell en windows](code/windows_rev_sh.cpp) o puede ser el codigo de tu eleccion, solo asegurate que sea para CPP.
+Aquí agregamos el código necesario para una [reverse shell en windows](code/windows_rev_sh.cpp) o puede ser el código de tu elección, solo asegúrate que sea para CPP en Windows.
 # Recomendaciones de mitigación
 * Usar el path absoluto para llamar a la DLL
 * Emplear herramientas automatizadas para detectar esta vulnerabilidad
