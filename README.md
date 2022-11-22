@@ -207,7 +207,7 @@ Aquí agregamos el código necesario para una [reverse shell en windows](code/wi
 # Recomendaciones de mitigación
 * Usar el path absoluto para llamar a la DLL
 * Emplear herramientas automatizadas para detectar esta vulnerabilidad
-* Usar alguna solucion que sea capaz de bloquear DLL maliciosas cargadas por software legítimo
+* Usar alguna solución que sea capaz de bloquear DLL maliciosas cargadas por software legítimo
 # Referencias
 * [LoadLibraryA function ](https://learn.microsoft.com/en-us/windows/win32/api/libloaderapi/nf-libloaderapi-loadlibrarya)
 * [LoadLibrary and AfxLoadLibrary](https://learn.microsoft.com/en-us/cpp/build/loadlibrary-and-afxloadlibrary?view=msvc-170)
